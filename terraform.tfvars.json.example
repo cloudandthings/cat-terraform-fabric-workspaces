@@ -2,23 +2,25 @@
     "fabric_provider": {
       "tenant_id": "",
       "client_id": "",
-      "client_secret": ""
+      "client_secret": "",
+      "workspace_id": ""
+    },
+    "fabric_environment": {
+      "display_name": "fabric-env"
+      
     },
     "fabric_notebooks": [
       {
-        "workspace_id": "b411283d-c68f-4b5c-80e6-e91947d97b4a",
         "display_name": "Notebook 1",
         "description": "This is a test notebook",
         "local_file_path": "notebooks/notebook1.ipynb"
       },
       {
-        "workspace_id": "b411283d-c68f-4b5c-80e6-e91947d97b4a",
         "display_name": "Notebook 2",
         "description": "This is a test notebook",
         "local_file_path": "notebooks/notebook2.ipynb"
       },
       {
-        "workspace_id": "b411283d-c68f-4b5c-80e6-e91947d97b4a",
         "display_name": "Notebook 3",
         "description": "This is a test notebook",
         "local_file_path": "notebooks/notebook3.ipynb"
