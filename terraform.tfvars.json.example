@@ -1,0 +1,21 @@
+{
+    "fabric_provider": {
+      "tenant_id": "",
+      "client_id": "",
+      "client_secret": ""
+    },
+    "fabric_notebooks": [
+      {
+        "workspace_id": "",
+        "display_name": "Notebook 1"
+      },
+      {
+        "workspace_id": "",
+        "display_name": "Notebook 2"
+      },
+      {
+        "workspace_id": "",
+        "display_name": "Notebook 3"
+      }
+    ]
+  }

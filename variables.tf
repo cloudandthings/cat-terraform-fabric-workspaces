@@ -1,19 +1,14 @@
-variable "tenant_id" {
-  description = "The tenant ID for the Microsoft Fabric provider"
-  type        = string
+variable "fabric_provider" {
+  type = object({
+    tenant_id     = string
+    client_id     = string
+    client_secret = string
+  })
 }
 
-variable "client_id" {
-  description = "The client ID for the Microsoft Fabric provider"
-  type        = string
-}
-
-variable "client_secret" {
-  description = "The client secret for the Microsoft Fabric provider"
-  type        = string
-}
-
-variable "workspace_id" {
-  description = "The workspace ID for the Fabric Notebook resource"
-  type        = string
+variable "fabric_notebooks" {
+  type = list(object({
+    workspace_id  = string
+    display_name  = string
+  }))
 }
