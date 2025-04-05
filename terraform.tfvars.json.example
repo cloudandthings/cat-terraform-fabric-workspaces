@@ -6,8 +6,8 @@
       "workspace_id": ""
     },
     "fabric_environment": {
-      "display_name": "fabric-env"
-      
+      "display_name": "fabric-env",
+      "description": "This is a test environment"
     },
     "fabric_notebooks": [
       {
