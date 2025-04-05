@@ -1,4 +1,12 @@
-resource "fabric_notebook" "example_by_name" {
-    display_name = var.display_name
-    workspace_id = var.workspace_id
+resource "fabric_notebook" "notebook" {
+  display_name              = var.display_name
+  description               = var.description
+  workspace_id              = var.workspace_id
+  definition_update_enabled = false
+  format                    = "ipynb"
+  definition = {
+    "notebook-content.ipynb" = {
+      source = var.local_file_path
+    }
+  }
 }

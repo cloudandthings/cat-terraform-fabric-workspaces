@@ -8,8 +8,9 @@ module "fabric_notebooks" {
 
   workspace_id = each.value.workspace_id
   display_name = each.value.display_name
+  description  = each.value.description
+  local_file_path = each.value.local_file_path
 
-  # Pass the provider configuration
   providers = {
     fabric = fabric
   }

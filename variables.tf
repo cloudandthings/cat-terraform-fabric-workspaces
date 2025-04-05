@@ -10,5 +10,7 @@ variable "fabric_notebooks" {
   type = list(object({
     workspace_id  = string
     display_name  = string
+    description   = string
+    local_file_path = string
   }))
 }

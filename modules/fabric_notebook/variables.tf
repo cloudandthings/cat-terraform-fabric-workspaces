@@ -8,6 +8,16 @@ variable "display_name" {
     type        = string  
 }
 
+variable "description" {
+    description = "The description for the Microsoft Fabric Provider."
+    type        = string
+}
+
+variable "local_file_path" {
+    description = "The local file path for the Microsoft Fabric Provider."
+    type        = string
+}
+
 variable "client_id" {
     description = "The Client ID for the Microsoft Fabric Provider."
     type        = string
