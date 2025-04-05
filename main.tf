@@ -26,3 +26,21 @@ module "fabric_notebooks" {
     fabric = fabric
   }
 }
+
+module "fabric_data_pipelines" {
+  source = "./modules/fabric_data_pipeline"
+  tenant_id     = var.fabric_provider.tenant_id
+  client_id     = var.fabric_provider.client_id
+  client_secret = var.fabric_provider.client_secret
+  workspace_id = var.fabric_provider.workspace_id
+
+  for_each = { for idx, data_pipeline in var.fabric_data_pipelines : idx => data_pipeline }
+  
+  display_name = each.value.display_name
+  description  = each.value.description
+  local_file_path = each.value.local_file_path
+
+  providers = {
+    fabric = fabric
+  }
+}

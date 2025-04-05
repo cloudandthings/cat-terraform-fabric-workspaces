@@ -21,3 +21,11 @@ variable "fabric_notebooks" {
     local_file_path = string
   }))
 }
+
+variable "fabric_data_pipelines" {
+  type = list(object({
+    display_name  = string
+    description   = string
+    local_file_path = string
+  }))
+}
