@@ -1,9 +1,6 @@
 {
     "fabric_provider": {
-      "tenant_id": "",
-      "client_id": "",
-      "client_secret": "",
-      "workspace_id": ""
+      "tenant_id": ""
     },
     "fabric_environment": {
       "display_name": "fabric-env",
@@ -24,6 +21,18 @@
         "display_name": "Notebook 3",
         "description": "This is a test notebook",
         "local_file_path": "notebooks/notebook3.ipynb"
+      }
+    ],
+    "fabric_data_pipelines": [
+      {
+        "display_name": "Data Pipeline 1",
+        "description": "This is a test pipeline",
+        "local_file_path": "data_pipelines/data_pipeline_1.json"
+      },
+      {
+        "display_name": "Data Pipeline 2",
+        "description": "This is a test pipeline",
+        "local_file_path": "data_pipelines/data_pipeline_2.json"
       }
     ]
   }
