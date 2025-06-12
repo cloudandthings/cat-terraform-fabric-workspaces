@@ -1,7 +1,7 @@
 module "fabric_capacity" {
   source            = "github.com/Azure/azure-data-labs-modules/terraform/fabric/fabric-capacity"
 
-  basename          = "${var.prefix}${var.postfix}"
+  basename          = "${var.basename}"
   resource_group_id = module.resource_group.id
   location          = var.location
 
@@ -12,6 +12,6 @@ module "fabric_capacity" {
 module "resource_group" {
   source = "github.com/Azure/azure-data-labs-modules/terraform/resource-group"
 
-  basename = "${var.prefix}-${var.postfix}"
+  basename = "${var.basename}"
   location = var.location
 }

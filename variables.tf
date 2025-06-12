@@ -7,8 +7,7 @@ variable "fabric_provider" {
 variable "fabric_capacity" {
   type = object({
     location      = string
-    prefix        = string
-    postfix       = string
+    basename      = string
     sku           = string
     admin_email   = string
   })

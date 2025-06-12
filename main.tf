@@ -1,8 +1,7 @@
 module "fabric_capacity" {
   source                      = "./modules/fabric_capacity"
   location                    = var.fabric_capacity.location
-  prefix                      = var.fabric_capacity.prefix
-  postfix                     = var.fabric_capacity.postfix
+  basename                    = var.fabric_capacity.basename
   sku                         = var.fabric_capacity.sku
   admin_email                 = var.fabric_capacity.admin_email
 }

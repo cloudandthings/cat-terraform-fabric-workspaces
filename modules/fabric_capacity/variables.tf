@@ -4,16 +4,10 @@ variable "location" {
   default     = "North Europe"
 }
 
-variable "prefix" {
+variable "basename" {
   type        = string
-  description = "Prefix for module names"
+  description = "Base name for module resources"
   default     = "test"
-}
-
-variable "postfix" {
-  type        = string
-  description = "Postfix for module names"
-  default     = "102"
 }
 
 variable "sku" {
