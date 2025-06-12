@@ -8,3 +8,8 @@ variable "description" {
     type        = string
     default     = ""
 }
+
+variable "capacity_id" {
+    description = "The ID of the Fabric capacity to associate with the workspace"
+    type        = string
+}

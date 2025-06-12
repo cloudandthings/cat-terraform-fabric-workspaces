@@ -4,6 +4,16 @@ variable "fabric_provider" {
   })
 }
 
+variable "fabric_capacity" {
+  type = object({
+    location      = string
+    prefix        = string
+    postfix       = string
+    sku           = string
+    admin_email   = string
+  })
+}
+
 variable "workspace" {
   type = object({
     display_name = string
