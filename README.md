@@ -1,74 +1,112 @@
-# Terraform Fabric Workspace
-![Terraform Fabric Workspace](creative/terraform-fabric-workspace.png)
+# Terraform Microsoft Fabric Workspace
 
-This repository provides a boilerplate Terraform configuration for deploying and managing resources in a Microsoft Fabric data platform. It includes modules and examples for provisioning and managing Fabric notebooks, along with a structured workspace setup.
-
-## Features
-
-- **Terraform Modules**: Modularized Terraform code for reusability and scalability.
-- **Notebook Management**: Automates the deployment of Fabric notebooks with metadata and content.
-- **Provider Configuration**: Pre-configured Microsoft Fabric provider setup.
-- **Environment Variables**: Supports secure configuration using `terraform.tfvars.json`.
-
+This Terraform project creates and manages Microsoft Fabric workspaces using the Microsoft Fabric Terraform provider.
 
 ## Prerequisites
 
-1. Install [Terraform](https://www.terraform.io/downloads.html).
-2. Ensure you have access to a Microsoft Fabric tenant with the necessary permissions.
-3. Configure your environment with the following:
-   - `tenant_id`
-   - `client_id`
-   - `client_secret`
+- [Terraform](https://www.terraform.io/downloads.html) >= 1.0
+- Microsoft Fabric access with appropriate permissions
+- Azure CLI installed and configured
+
+## Project Structure
+
+```
+.
+├── main.tf                    # Main Terraform configuration
+├── provider.tf               # Provider configuration
+├── variables.tf              # Variable definitions
+├── terraform.tfvars.json     # Variable values (excluded from git)
+├── terraform.tfvars.json.example  # Example variable values
+├── modules/
+│   └── fabric_workspace/     # Reusable workspace module
+│       ├── main.tf
+│       ├── variables.tf
+│       ├── outputs.tf
+│       └── provider.tf
+└── README.md
+```
+
+## Configuration
+
+1. Copy the example variables file:
+   ```bash
+   cp terraform.tfvars.json.example terraform.tfvars.json
+   ```
+
+2. Update [`terraform.tfvars.json`](terraform.tfvars.json) with your values:
+   ```json
+   {
+     "fabric_provider": {
+       "tenant_id": "your-tenant-id-here"
+     },
+     "workspace": {
+       "display_name": "your-workspace-name",
+       "description": "Your workspace description"
+     }
+   }
+   ```
+
+## Variables
+
+The project uses the following variables defined in [`variables.tf`](variables.tf):
+
+- `fabric_provider.tenant_id` (string): Your Microsoft Fabric tenant ID
+- `workspace.display_name` (string): The display name for the workspace
+- `workspace.description` (string, optional): Description of the workspace
 
 ## Usage
 
-### Step 1: Clone the Repository
-
+### Authenticate with Azure CLI
 ```bash
-git clone https://github.com/your-repo/fabric-data-platform.git
-cd fabric-data-platform
+az login
 ```
 
-### Step 2: Configure Variables
-Create a terraform.tfvars.json file (or use the provided terraform.tfvars.json.example as a template) and populate it with your credentials and fabric workspace configurations:
-```
-{
-  "fabric_provider": {
-    "tenant_id": "your-tenant-id",
-    "client_id": "your-client-id",
-    "client_secret": "your-client-secret"
-  },
-  "fabric_notebooks": [
-    {
-      "workspace_id": "workspace-id-1",
-      "display_name": "Notebook 1",
-      "description": "Description for Notebook 1",
-      "local_file_path": "notebooks/notebook1.ipynb"
-    },
-    {
-      "workspace_id": "workspace-id-2",
-      "display_name": "Notebook 2",
-      "description": "Description for Notebook 2",
-      "local_file_path": "notebooks/notebook2.ipynb"
-    }
-  ]
-}
-```
-
-### Step 3: Initialize Terraform
-Run the following command to initialize the Terraform workspace and download the required providers:
-```
+### Initialize Terraform
+```bash
 terraform init
 ```
 
-### Step 4: Plan the Deployment
-Generate an execution plan to preview the changes Terraform will make
-```
+### Plan the deployment
+```bash
 terraform plan
 ```
 
-### Step 5: Apply the Configuration
-Apply the Terraform configuration to deploy the resources:
-```
+### Apply the configuration
+```bash
 terraform apply
 ```
+
+### Destroy resources
+```bash
+terraform destroy
+```
+
+## Module: fabric_workspace
+
+The [`fabric_workspace`](modules/fabric_workspace) module creates a Microsoft Fabric workspace with the following features:
+
+- Configurable display name and description
+- Uses the Microsoft Fabric provider version 1.2.0
+
+### Module Inputs
+
+- `display_name` (string): The name of the Fabric workspace
+- `description` (string): Description of the workspace (optional, defaults to empty string)
+
+## Provider Configuration
+
+This project uses the [Microsoft Fabric Terraform provider](https://registry.terraform.io/providers/microsoft/fabric/latest) with:
+
+- Version: 1.2.0
+- Authentication: Azure CLI (`use_cli = true`)
+- Preview features enabled
+
+## License
+
+The Microsoft Fabric Terraform provider is licensed under the Mozilla Public License 2.0. See [LICENSE.txt](.terraform/providers/registry.terraform.io/microsoft/fabric/1.2.0/windows_amd64/LICENSE.txt) for details.
+
+## Notes
+
+- The [`terraform.tfvars.json`](terraform.tfvars.json) file contains sensitive information and is excluded from version control
+- State files ([`terraform.tfstate`](terraform.tfstate)) are also excluded from git
+- The provider is configured with `preview = true` to enable preview features
