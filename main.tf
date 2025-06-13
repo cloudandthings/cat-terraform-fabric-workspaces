@@ -9,7 +9,7 @@ module "fabric_capacity" {
     location    = each.value.location
     basename    = each.value.basename
     sku         = each.value.sku
-    admin_email = each.value.admin_email
+    admin_emails = each.value.admin_emails
 
     providers = {
         azurerm = azurerm

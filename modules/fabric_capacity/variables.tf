@@ -16,8 +16,8 @@ variable "sku" {
   default     = "F2"
 }
 
-variable "admin_email" {
-  type        = string
-  description = "Admin email address"
-  default     = "<>"
+variable "admin_emails" {
+  type        = list(string)
+  description = "List of admin email addresses"
+  default     = []
 }

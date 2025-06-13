@@ -10,7 +10,7 @@ variable "fabric_capacities" {
     location    = string
     basename    = string
     sku         = string
-    admin_email = string
+    admin_emails = list(string)
   }))
 }
 
