@@ -1,17 +1,27 @@
-module "fabric_capacity" {
-  source            = "github.com/Azure/azure-data-labs-modules/terraform/fabric/fabric-capacity"
+data "azurerm_client_config" "current" {}
 
-  basename          = "${var.basename}"
-  resource_group_id = module.resource_group.id
-  location          = var.location
-
-  sku               = var.sku
-  admin_email       = var.admin_email
+data "azuread_user" "admin" {
+  user_principal_name = var.admin_email
 }
 
-module "resource_group" {
-  source = "github.com/Azure/azure-data-labs-modules/terraform/resource-group"
-
-  basename = "${var.basename}"
+resource "azurerm_resource_group" "this" {
+  name     = var.basename
   location = var.location
+}
+
+resource "azurerm_fabric_capacity" "this" {
+  name                = var.basename
+  resource_group_name = azurerm_resource_group.this.name
+  location            = var.location
+
+  administration_members = [var.admin_email]
+
+  sku {
+    name = var.sku
+    tier = "Fabric"
+  }
+
+  tags = {
+    environment = "test"
+  }
 }

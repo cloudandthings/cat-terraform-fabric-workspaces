@@ -6,11 +6,11 @@ terraform {
     }
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "= 3.70.0"
+      version = ">= 3.98.0"
     }
-    azapi = {
-      source  = "azure/azapi"
-      version = "~> 1.0"
+    azuread = {
+      source  = "hashicorp/azuread"
+      version = ">= 2.47.0"
     }
   }
 }
@@ -23,5 +23,9 @@ provider "fabric" {
 
 provider "azurerm" {
   features {}
-  skip_provider_registration = true
+  subscription_id = var.fabric_provider.subscription_id
+}
+
+provider "azuread" {
+  tenant_id = var.fabric_provider.tenant_id
 }
