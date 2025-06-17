@@ -14,3 +14,10 @@ resource "fabric_workspace" "workspace" {
     description  = var.description
     capacity_id  = data.fabric_capacity.capacity.id
 }
+
+resource "fabric_domain_workspace_assignments" "domain_assignment" {
+    domain_id    = var.fabric_domain_id
+    workspace_ids = [
+        fabric_workspace.workspace.id
+    ]
+}

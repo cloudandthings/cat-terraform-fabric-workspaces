@@ -1,7 +1,7 @@
 {
   "fabric_provider": {
-    "tenant_id": "xxxxxxxxxxxx",
-    "subscription_id": "xxxxxxxxxxxxxxxxxxxx"
+    "tenant_id": "XXXXXXXXXXXXXXXXXXXXX",
+    "subscription_id": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
   },
   "fabric_capacities": [
     {
@@ -9,8 +9,8 @@
       "basename": "test001",
       "sku": "F2",
       "admin_emails": [
-      "janno@cloudandthings.io",
-      "stephan@cloudandthings.io"
+      "xyz@google.com",
+      "xyzy@google.com"
       ]
     },
     {
@@ -18,7 +18,20 @@
       "basename": "test002",
       "sku": "F2",
       "admin_emails": [
-        "janno@cloudandthings.io"
+        "xyz@google.com"
+      ]
+    }
+  ],
+  "domains": [
+    {
+      "display_name": "test-domain",
+      "description": "This is a test domain",
+      "parent_domain_id": "",
+      "admin_principals": [
+        {
+          "id": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+          "type": "User"
+        }
       ]
     }
   ],
@@ -26,12 +39,14 @@
     {
       "display_name": "test-workspace",
       "description": "This is a test workspace",
-      "capacity_basename": "test001"
+      "capacity_basename": "test001",
+      "domain_name": "test-domain"
     },
     {
       "display_name": "test-workspace-2",
       "description": "This is a second test workspace",
-      "capacity_basename": "test002"
+      "capacity_basename": "test002",
+      "domain_name": "test-domain"
     }
   ]
 }

@@ -14,10 +14,23 @@ variable "fabric_capacities" {
   }))
 }
 
+variable "domains" {
+  type = list(object({
+    display_name       = string
+    description        = optional(string, "")
+    parent_domain_id   = optional(string, "")
+    admin_principals   = list(object({
+      id   = string
+      type = string
+  }))
+}))
+}
+
 variable "workspaces" {
   type = list(object({
     display_name      = string
     description       = optional(string, "")
     capacity_basename = string
+    domain_name       = optional(string, "")
   }))
 }

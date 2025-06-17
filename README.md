@@ -1,6 +1,6 @@
 # Terraform Microsoft Fabric Workspace
 
-This Terraform project creates and manages Microsoft Fabric capacities and workspaces using both the Microsoft Fabric and Azure Resource Manager Terraform providers.
+This Terraform project creates and manages Microsoft Fabric capacities, domains, and workspaces using both the Microsoft Fabric and Azure Resource Manager Terraform providers.
 
 ## Prerequisites
 
@@ -20,6 +20,11 @@ This Terraform project creates and manages Microsoft Fabric capacities and works
 ├── terraform.tfvars.json.example  # Example variable values
 ├── modules/
 │   ├── fabric_capacity/      # Azure Fabric capacity module
+│   │   ├── main.tf
+│   │   ├── variables.tf
+│   │   ├── outputs.tf
+│   │   └── provider.tf
+│   ├── fabric_domain/        # Microsoft Fabric domain module
 │   │   ├── main.tf
 │   │   ├── variables.tf
 │   │   ├── outputs.tf
@@ -47,19 +52,36 @@ This Terraform project creates and manages Microsoft Fabric capacities and works
        "tenant_id": "your-tenant-id-here",
        "subscription_id": "your-subscription-id-here"
      },
-     "capacities": [
+     "fabric_capacities": [
        {
-         "basename": "capacity-name",
-         "location": "West Europe",
-         "sku": "F32",
-         "admin_email": "admin@yourdomain.com"
+         "location": "eastus2",
+         "basename": "test001",
+         "sku": "F2",
+         "admin_emails": [
+           "admin@yourdomain.com",
+           "admin2@yourdomain.com"
+         ]
+       }
+     ],
+     "domains": [
+       {
+         "display_name": "test-domain",
+         "description": "This is a test domain",
+         "parent_domain_id": "",
+         "admin_principals": [
+           {
+             "id": "user-object-id-here",
+             "type": "User"
+           }
+         ]
        }
      ],
      "workspaces": [
        {
-         "display_name": "workspace-name",
-         "description": "Workspace description",
-         "capacity_basename": "capacity-name"
+         "display_name": "test-workspace",
+         "description": "This is a test workspace",
+         "capacity_basename": "test001",
+         "domain_name": "test-domain"
        }
      ]
    }
@@ -74,17 +96,27 @@ The project uses the following variables defined in [`variables.tf`](variables.t
 - `fabric_provider.subscription_id` (string): Your Azure subscription ID
 
 ### Capacity Configuration
-- `capacities` (list): List of Fabric capacities to create
-  - `basename` (string): Base name for the capacity and resource group
+- `fabric_capacities` (list): List of Fabric capacities to create
   - `location` (string): Azure region for the capacity
-  - `sku` (string): Fabric capacity SKU (e.g., F32, F64, F128)
-  - `admin_email` (string): Email of the capacity administrator
+  - `basename` (string): Base name for the capacity and resource group
+  - `sku` (string): Fabric capacity SKU (e.g., F2, F32, F64, F128)
+  - `admin_emails` (list): List of administrator email addresses
+
+### Domain Configuration
+- `domains` (list): List of Fabric domains to create
+  - `display_name` (string): The name of the Fabric domain
+  - `description` (string, optional): Description of the domain
+  - `parent_domain_id` (string, optional): ID of the parent domain for nested domains
+  - `admin_principals` (list): List of administrator principals
+    - `id` (string): Object ID of the user or group
+    - `type` (string): Type of principal ("User" or "Group")
 
 ### Workspace Configuration
 - `workspaces` (list): List of Fabric workspaces to create
   - `display_name` (string): The name of the Fabric workspace
-  - `description` (string): Description of the workspace
+  - `description` (string, optional): Description of the workspace
   - `capacity_basename` (string): Reference to the capacity basename
+  - `domain_name` (string, optional): Reference to the domain display name
 
 ## Usage
 
@@ -122,16 +154,34 @@ The [`fabric_capacity`](modules/fabric_capacity) module creates Azure Fabric cap
 - Creates Azure Resource Group
 - Deploys Microsoft Fabric capacity
 - Configurable SKU and location
-- Sets administration members
+- Sets administration members from email addresses
 
 #### Module Inputs
 - `basename` (string): Base name for resources
-- `location` (string): Azure region
-- `sku` (string): Fabric capacity SKU
-- `admin_email` (string): Administrator email address
+- `location` (string): Azure region (default: "North Europe")
+- `sku` (string): Fabric capacity SKU (default: "F2")
+- `admin_emails` (list): List of administrator email addresses
 
 #### Module Outputs
 - `id` (string): The Azure resource ID of the Fabric capacity
+
+### fabric_domain
+
+The [`fabric_domain`](modules/fabric_domain) module creates Microsoft Fabric domains with the following features:
+
+- Creates Fabric domains for organization and governance
+- Supports nested domain hierarchies
+- Configurable administrator role assignments
+- Domain-based workspace management
+
+#### Module Inputs
+- `display_name` (string): The display name of the Fabric domain
+- `description` (string): Description of the domain (optional)
+- `parent_domain_id` (string): ID of the parent domain for nested domains (optional)
+- `admin_principals` (list): List of administrator principals with id and type
+
+#### Module Outputs
+- `id` (string): The ID of the Fabric domain
 
 ### fabric_workspace
 
@@ -139,12 +189,14 @@ The [`fabric_workspace`](modules/fabric_workspace) module creates Microsoft Fabr
 
 - Configurable display name and description
 - Links to existing Fabric capacity
-- Uses the Microsoft Fabric provider version 1.2.0
+- Automatic domain assignment
+- Capacity state validation
 
 #### Module Inputs
 - `display_name` (string): The name of the Fabric workspace
-- `description` (string): Description of the workspace (optional, defaults to empty string)
-- `capacity_id` (string): The ID of the Fabric capacity to assign the workspace to
+- `description` (string): Description of the workspace (optional)
+- `capacity_id` (string): The Azure resource ID of the Fabric capacity
+- `fabric_domain_id` (string): The ID of the Fabric domain (optional)
 
 ## Provider Configuration
 
@@ -167,17 +219,29 @@ This project uses multiple Terraform providers:
 ## Dependencies
 
 The project establishes the following dependencies:
-- Workspaces depend on capacities being created first
+- Domains are created first and independently
+- Workspaces depend on both capacities and domains being created
 - Capacity administrators are validated against Azure AD
+- Domain workspace assignments are created after workspace creation
+
+## Architecture
+
+The solution creates a hierarchical structure:
+1. **Azure Resource Groups** - Container for Azure resources
+2. **Fabric Capacities** - Compute resources for Fabric workloads
+3. **Fabric Domains** - Organizational units for governance
+4. **Fabric Workspaces** - Development environments linked to capacities and domains
 
 ## License
 
-The Microsoft Fabric Terraform provider is licensed under the Mozilla Public License 2.0. See [LICENSE.txt](.terraform/providers/registry.terraform.io/microsoft/fabric/1.2.0/windows_amd64/LICENSE.txt) for details.
+The Microsoft Fabric Terraform provider is licensed under the Mozilla Public License 2.0.
 
 ## Notes
 
 - The [`terraform.tfvars.json`](terraform.tfvars.json) file contains sensitive information and is excluded from version control
 - State files ([`terraform.tfstate`](terraform.tfstate)) are also excluded from git
 - The Fabric provider is configured with `preview = true` to enable preview features
-- Ensure the admin email provided exists as a valid user in your Azure AD tenant
+- Ensure admin emails and principal IDs exist as valid users/groups in your Azure AD tenant
 - Fabric capacities require specific Azure regions that support Microsoft Fabric
+- Domain assignments automatically link workspaces to their specified domains
+- The workspace module extracts capacity names from Azure resource IDs for Fabric provider compatibility

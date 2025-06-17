@@ -13,3 +13,9 @@ variable "capacity_id" {
     description = "The ID of the Fabric capacity to associate with the workspace"
     type        = string
 }
+
+variable "fabric_domain_id" {
+    description = "The ID of the Fabric domain to associate with the workspace"
+    type        = string
+    default     = ""
+}
