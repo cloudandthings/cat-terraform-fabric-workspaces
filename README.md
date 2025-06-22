@@ -1,4 +1,4 @@
-# Terraform Microsoft Fabric Workspace
+# Terraform Microsoft Fabric Workspaces
 
 This Terraform project creates and manages Microsoft Fabric capacities, domains, and workspaces using both the Microsoft Fabric and Azure Resource Manager Terraform providers.
 
