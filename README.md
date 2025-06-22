@@ -4,7 +4,7 @@ This Terraform project creates and manages Microsoft Fabric capacities, domains,
 
 ## Prerequisites
 
-- [Terraform](https://www.terraform.io/downloads.html) >= 1.0
+- [Terraform](https://www.terraform.io/downloads.html) >= 1.12.2
 - Microsoft Fabric access with appropriate permissions
 - Azure CLI installed and configured
 - Azure subscription with permissions to create Fabric capacities
