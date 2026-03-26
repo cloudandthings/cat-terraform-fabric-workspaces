@@ -1,8 +1,3 @@
-locals {
-    capacities = { for c in var.fabric_capacities : c.basename => c }
-    workspaces = var.workspaces
-}
-
 module "fabric_capacity" {
     for_each    = local.capacities
     source      = "./modules/fabric_capacity"
@@ -26,11 +21,6 @@ module "fabric_domain" {
     parent_domain_id = each.value.parent_domain_id
 }
 
-# Create a map of domain display_name to module id for lookup
-locals {
-    domain_ids = { for k, v in module.fabric_domain : k => v.id }
-}
-
 module "fabric_workspace" {
     for_each      = { for ws in local.workspaces : ws.display_name => ws }
     source        = "./modules/fabric_workspace"
@@ -39,4 +29,14 @@ module "fabric_workspace" {
     capacity_id   = module.fabric_capacity[each.value.capacity_basename].id
     fabric_domain_id = local.domain_ids[each.value.domain_name]
     depends_on    = [module.fabric_capacity]
+}
+
+module "fabric_lakehouse" {
+  for_each       = local.lakehouses
+  source         = "./modules/fabric_lakehouse"
+  display_name   = each.value.lakehouse.display_name
+  description    = try(each.value.lakehouse.description, "")
+  workspace_id   = module.fabric_workspace[each.value.workspace_display_name].id
+  enable_schemas = try(each.value.lakehouse.enable_schemas, false)
+  depends_on     = [module.fabric_workspace]
 }

@@ -32,5 +32,10 @@ variable "workspaces" {
     description       = optional(string, "")
     capacity_basename = string
     domain_name       = optional(string, "")
+    lakehouses        = optional(list(object({
+      display_name   = string
+      description    = optional(string, "")
+      enable_schemas = optional(bool, false)
+    })), [])
   }))
 }
