@@ -2,7 +2,11 @@ terraform {
   required_providers {
     fabric = {
       source  = "microsoft/fabric"
+<<<<<<< HEAD
       version = "1.8.0"
+=======
+      version = "1.6.0"
+>>>>>>> b07b7af (feat: 2026-4-24 Add new Features)
     }
     azurerm = {
       source  = "hashicorp/azurerm"
