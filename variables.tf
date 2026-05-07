@@ -7,10 +7,16 @@ variable "fabric_provider" {
 
 variable "fabric_capacities" {
   type = list(object({
-    location    = string
-    basename    = string
-    sku         = string
+    location     = string
+    basename     = string
+    sku          = string
     admin_emails = list(string)
+    scheduler = optional(object({
+      pause_time  = string
+      resume_time = string
+      pause_days  = optional(list(string), ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"])
+      resume_days = optional(list(string), ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"])
+    }), null)
   }))
 }
 

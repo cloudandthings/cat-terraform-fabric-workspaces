@@ -1,10 +1,11 @@
 module "fabric_capacity" {
-    for_each    = local.capacities
-    source      = "./modules/fabric_capacity"
-    location    = each.value.location
-    basename    = each.value.basename
-    sku         = each.value.sku
+    for_each     = local.capacities
+    source       = "./modules/fabric_capacity"
+    location     = each.value.location
+    basename     = each.value.basename
+    sku          = each.value.sku
     admin_emails = each.value.admin_emails
+    scheduler    = each.value.scheduler
 
     providers = {
         azurerm = azurerm

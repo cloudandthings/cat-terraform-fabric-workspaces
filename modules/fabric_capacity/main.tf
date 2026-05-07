@@ -19,3 +19,119 @@ resource "azurerm_fabric_capacity" "this" {
     environment = "test"
   }
 }
+
+# ---------------------------------------------------------------------------
+# Scheduler: Azure Automation Account (opt-in via var.scheduler)
+# ---------------------------------------------------------------------------
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_automation_account" "this" {
+  count               = var.scheduler != null ? 1 : 0
+  name                = "${var.basename}-automation"
+  location            = var.location
+  resource_group_name = azurerm_resource_group.this.name
+  sku_name            = "Basic"
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  tags = {
+    environment = "test"
+  }
+}
+
+resource "azurerm_role_assignment" "automation_contributor" {
+  count                = var.scheduler != null ? 1 : 0
+  scope                = azurerm_fabric_capacity.this.id
+  role_definition_name = "Contributor"
+  principal_id         = azurerm_automation_account.this[0].identity[0].principal_id
+}
+
+resource "azurerm_automation_runbook" "manage_capacity" {
+  count                   = var.scheduler != null ? 1 : 0
+  name                    = "manage-fabric-capacity"
+  location                = var.location
+  resource_group_name     = azurerm_resource_group.this.name
+  automation_account_name = azurerm_automation_account.this[0].name
+  log_verbose             = false
+  log_progress            = true
+  runbook_type            = "PowerShell72"
+  content                 = file("${path.module}/scripts/manage_capacity.ps1")
+  description             = "Pauses or resumes the Fabric Capacity on a schedule."
+}
+
+# Stable timestamps used to produce a deterministic start_time for each schedule.
+# Replacing triggers (when pause_time/pause_days or resume_time/resume_days change)
+# destroys and recreates time_static, which in turn recreates the schedule with the
+# updated settings. This avoids the need for ignore_changes = [start_time].
+resource "time_static" "pause_schedule" {
+  count = var.scheduler != null ? 1 : 0
+  triggers = {
+    pause_time = var.scheduler.pause_time
+    pause_days = join(",", sort(var.scheduler.pause_days))
+  }
+}
+
+resource "time_static" "resume_schedule" {
+  count = var.scheduler != null ? 1 : 0
+  triggers = {
+    resume_time = var.scheduler.resume_time
+    resume_days = join(",", sort(var.scheduler.resume_days))
+  }
+}
+
+resource "azurerm_automation_schedule" "pause_schedule" {
+  count                   = var.scheduler != null ? 1 : 0
+  name                    = "${var.basename}-scheduled-pause"
+  resource_group_name     = azurerm_resource_group.this.name
+  automation_account_name = azurerm_automation_account.this[0].name
+  frequency               = "Week"
+  interval                = 1
+  week_days               = var.scheduler.pause_days
+  description             = "Pauses the capacity at ${var.scheduler.pause_time} UTC."
+  start_time              = "${formatdate("YYYY-MM-DD", timeadd(time_static.pause_schedule[0].rfc3339, "24h"))}T${var.scheduler.pause_time}:00+00:00"
+}
+
+resource "azurerm_automation_job_schedule" "pause_schedule" {
+  count                   = var.scheduler != null ? 1 : 0
+  resource_group_name     = azurerm_resource_group.this.name
+  automation_account_name = azurerm_automation_account.this[0].name
+  schedule_name           = azurerm_automation_schedule.pause_schedule[0].name
+  runbook_name            = azurerm_automation_runbook.manage_capacity[0].name
+
+  parameters = {
+    subscriptionid    = data.azurerm_client_config.current.subscription_id
+    resourcegroupname = azurerm_resource_group.this.name
+    capacityname      = var.basename
+    mode              = "Pause"
+  }
+}
+
+resource "azurerm_automation_schedule" "resume_schedule" {
+  count                   = var.scheduler != null ? 1 : 0
+  name                    = "${var.basename}-scheduled-resume"
+  resource_group_name     = azurerm_resource_group.this.name
+  automation_account_name = azurerm_automation_account.this[0].name
+  frequency               = "Week"
+  interval                = 1
+  week_days               = var.scheduler.resume_days
+  description             = "Resumes the capacity at ${var.scheduler.resume_time} UTC."
+  start_time              = "${formatdate("YYYY-MM-DD", timeadd(time_static.resume_schedule[0].rfc3339, "24h"))}T${var.scheduler.resume_time}:00+00:00"
+}
+
+resource "azurerm_automation_job_schedule" "resume_schedule" {
+  count                   = var.scheduler != null ? 1 : 0
+  resource_group_name     = azurerm_resource_group.this.name
+  automation_account_name = azurerm_automation_account.this[0].name
+  schedule_name           = azurerm_automation_schedule.resume_schedule[0].name
+  runbook_name            = azurerm_automation_runbook.manage_capacity[0].name
+
+  parameters = {
+    subscriptionid    = data.azurerm_client_config.current.subscription_id
+    resourcegroupname = azurerm_resource_group.this.name
+    capacityname      = var.basename
+    mode              = "Resume"
+  }
+}
