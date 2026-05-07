@@ -23,7 +23,9 @@ This Terraform project creates and manages Microsoft Fabric capacities, domains,
 │   │   ├── main.tf
 │   │   ├── variables.tf
 │   │   ├── outputs.tf
-│   │   └── provider.tf
+│   │   ├── provider.tf
+│   │   └── scripts/
+│   │       └── manage_capacity.ps1  # PowerShell runbook for pause/resume scheduling
 │   ├── fabric_domain/        # Microsoft Fabric domain module
 │   │   ├── main.tf
 │   │   ├── variables.tf
@@ -60,7 +62,13 @@ This Terraform project creates and manages Microsoft Fabric capacities, domains,
          "admin_emails": [
            "admin@yourdomain.com",
            "admin2@yourdomain.com"
-         ]
+         ],
+         "scheduler": {
+           "pause_time": "20:00",
+           "resume_time": "07:00",
+           "pause_days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+           "resume_days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+         }
        }
      ],
      "domains": [
@@ -101,6 +109,11 @@ The project uses the following variables defined in [`variables.tf`](variables.t
   - `basename` (string): Base name for the capacity and resource group
   - `sku` (string): Fabric capacity SKU (e.g., F2, F32, F64, F128)
   - `admin_emails` (list): List of administrator email addresses
+  - `scheduler` (object, optional): Automated pause/resume schedule. Omit or set to `null` to disable.
+    - `pause_time` (string): Time to pause the capacity in `HH:MM` UTC format
+    - `resume_time` (string): Time to resume the capacity in `HH:MM` UTC format
+    - `pause_days` (list, optional): Days on which to pause (default: all days)
+    - `resume_days` (list, optional): Days on which to resume (default: all days)
 
 ### Domain Configuration
 - `domains` (list): List of Fabric domains to create
@@ -155,15 +168,33 @@ The [`fabric_capacity`](modules/fabric_capacity) module creates Azure Fabric cap
 - Deploys Microsoft Fabric capacity
 - Configurable SKU and location
 - Sets administration members from email addresses
+- Optional automated pause/resume scheduling via Azure Automation
 
 #### Module Inputs
 - `basename` (string): Base name for resources
 - `location` (string): Azure region (default: "North Europe")
 - `sku` (string): Fabric capacity SKU (default: "F2")
 - `admin_emails` (list): List of administrator email addresses
+- `scheduler` (object, optional): Automated pause/resume schedule configuration. Set to `null` (default) to disable.
+  - `pause_time` (string): Time to pause the capacity in `HH:MM` UTC format
+  - `resume_time` (string): Time to resume the capacity in `HH:MM` UTC format
+  - `pause_days` (list, optional): Days on which to run the pause schedule (default: all days)
+  - `resume_days` (list, optional): Days on which to run the resume schedule (default: all days)
 
 #### Module Outputs
 - `id` (string): The Azure resource ID of the Fabric capacity
+- `automation_account_id` (string): The Azure resource ID of the Automation Account. `null` when scheduling is disabled.
+
+#### Capacity Scheduling
+
+When `scheduler` is configured, the module provisions the following Azure resources to automate capacity cost management:
+
+- **Azure Automation Account** — with a System-Assigned Managed Identity
+- **Role Assignment** — grants the Managed Identity `Contributor` access on the Fabric Capacity
+- **PowerShell 7.2 Runbook** (`manage_capacity.ps1`) — authenticates via Managed Identity and calls the Azure Management API to suspend or resume the capacity
+- **Two weekly schedules** — one to pause and one to resume the capacity at the configured times and days
+
+The runbook is idempotent: it checks the current capacity state before acting and skips the API call if the capacity is already in the target state.
 
 ### fabric_domain
 

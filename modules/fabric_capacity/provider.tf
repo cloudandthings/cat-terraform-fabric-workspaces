@@ -6,5 +6,8 @@ terraform {
     azuread = {
       source  = "hashicorp/azuread"
     }
+    time = {
+      source  = "hashicorp/time"
+    }
   }
 }

@@ -9,9 +9,15 @@
       "basename": "test001",
       "sku": "F2",
       "admin_emails": [
-      "xyz@google.com",
-      "xyzy@google.com"
-      ]
+        "xyz@google.com",
+        "xyzy@google.com"
+      ],
+      "scheduler": {
+        "pause_time": "20:00",
+        "resume_time": "07:00",
+        "pause_days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+        "resume_days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+      }
     },
     {
       "location": "eastus2",
