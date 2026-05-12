@@ -4,10 +4,34 @@ This Terraform project creates and manages Microsoft Fabric capacities, domains,
 
 ## Prerequisites
 
-- [Terraform](https://www.terraform.io/downloads.html) >= 1.12.2
+- [mise](https://mise.jdx.dev/) — manages all required tools (Terraform, tflint, Azure CLI, pre-commit, checkov)
 - Microsoft Fabric access with appropriate permissions
-- Azure CLI installed and configured
 - Azure subscription with permissions to create Fabric capacities
+
+## Setup
+
+After cloning the repo, run:
+
+```bash
+mise run setup
+```
+
+This installs all required tools at the correct versions and activates the pre-commit hooks.
+
+## Pre-commit Hooks
+
+This repo uses [pre-commit](https://pre-commit.com/) with [pre-commit-terraform](https://github.com/antonbabenko/pre-commit-terraform) hooks that run automatically on every `git commit`:
+
+- **terraform_fmt** — formats all `.tf` files
+- **terraform_validate** — validates all Terraform configuration
+- **terraform_tflint** — lints Terraform files with tflint
+- **terraform_checkov** — static security analysis
+
+To run all hooks manually:
+
+```bash
+pre-commit run --all-files
+```
 
 ## Project Structure
 
@@ -234,7 +258,7 @@ The [`fabric_workspace`](modules/fabric_workspace) module creates Microsoft Fabr
 This project uses multiple Terraform providers:
 
 ### Microsoft Fabric Provider
-- Version: 1.2.0
+- Version: 1.10.0
 - Authentication: Azure CLI (`use_cli = true`)
 - Preview features enabled
 
