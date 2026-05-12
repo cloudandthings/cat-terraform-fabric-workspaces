@@ -1,0 +1,18 @@
+[settings]
+experimental = true
+disable_tools = ["uv"]
+
+[tools]
+terraform                      = "latest"
+tflint                         = "latest"
+azure-cli                      = "latest"
+"aqua:astral-sh/uv"            = "latest"
+"aqua:pre-commit/pre-commit"   = "latest"
+"aqua:bridgecrewio/checkov"    = "latest"
+
+[tasks.setup]
+description = "Install all tools and activate pre-commit hooks"
+run = """
+mise install
+pre-commit install
+"""
