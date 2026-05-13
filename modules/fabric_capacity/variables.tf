@@ -26,8 +26,8 @@ variable "scheduler" {
   description = "Optional schedule for automated pause/resume of the Fabric Capacity. Set to null to disable."
   default     = null
   type = object({
-    pause_time  = string                                                                      # "HH:MM" UTC
-    resume_time = string                                                                      # "HH:MM" UTC
+    pause_time  = string # "HH:MM" UTC
+    resume_time = string # "HH:MM" UTC
     pause_days  = optional(list(string), ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"])
     resume_days = optional(list(string), ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"])
   })
