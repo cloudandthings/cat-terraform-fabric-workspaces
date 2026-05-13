@@ -8,7 +8,7 @@ tflint                         = "latest"
 azure-cli                      = "latest"
 "aqua:astral-sh/uv"            = "latest"
 "aqua:pre-commit/pre-commit"   = "latest"
-"aqua:bridgecrewio/checkov"    = "latest"
+"pipx:checkov"                 = "latest"
 
 [tasks.setup]
 description = "Install all tools and activate pre-commit hooks"

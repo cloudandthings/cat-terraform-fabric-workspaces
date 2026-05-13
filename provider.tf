@@ -1,4 +1,5 @@
 terraform {
+  required_version = ">= 1.3.0"
   required_providers {
     fabric = {
       source  = "microsoft/fabric"
@@ -20,9 +21,9 @@ terraform {
 }
 
 provider "fabric" {
-  tenant_id     = var.fabric_provider.tenant_id
-  use_cli       = true
-  preview       = true
+  tenant_id = var.fabric_provider.tenant_id
+  use_cli   = true
+  preview   = true
 }
 
 provider "azurerm" {

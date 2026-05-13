@@ -1,7 +1,7 @@
 variable "fabric_provider" {
   type = object({
-    tenant_id        = string
-    subscription_id  = string
+    tenant_id       = string
+    subscription_id = string
   })
 }
 
@@ -22,14 +22,14 @@ variable "fabric_capacities" {
 
 variable "domains" {
   type = list(object({
-    display_name       = string
-    description        = optional(string, "")
-    parent_domain_id   = optional(string, "")
-    admin_principals   = list(object({
+    display_name     = string
+    description      = optional(string, "")
+    parent_domain_id = optional(string, "")
+    admin_principals = list(object({
       id   = string
       type = string
+    }))
   }))
-}))
 }
 
 variable "workspaces" {
@@ -38,7 +38,7 @@ variable "workspaces" {
     description       = optional(string, "")
     capacity_basename = string
     domain_name       = optional(string, "")
-    lakehouses        = optional(list(object({
+    lakehouses = optional(list(object({
       display_name   = string
       description    = optional(string, "")
       enable_schemas = optional(bool, false)

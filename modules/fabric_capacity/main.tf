@@ -27,11 +27,12 @@ resource "azurerm_fabric_capacity" "this" {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_automation_account" "this" {
-  count               = var.scheduler != null ? 1 : 0
-  name                = "${var.basename}-automation"
-  location            = var.location
-  resource_group_name = azurerm_resource_group.this.name
-  sku_name            = "Basic"
+  count                         = var.scheduler != null ? 1 : 0
+  name                          = "${var.basename}-automation"
+  location                      = var.location
+  resource_group_name           = azurerm_resource_group.this.name
+  sku_name                      = "Basic"
+  public_network_access_enabled = false
 
   identity {
     type = "SystemAssigned"
