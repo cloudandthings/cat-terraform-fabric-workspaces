@@ -8,3 +8,12 @@ repos:
       - id: terraform_checkov
         args:
           - --args=--quiet
+
+  - repo: local
+    hooks:
+      - id: terraform_test
+        name: Terraform test
+        language: system
+        entry: bash -c 'for dir in modules/*/; do echo "--- $dir ---"; terraform -chdir="$dir" test || exit 1; done'
+        pass_filenames: false
+        files: \.(tf|tftest\.hcl)$
