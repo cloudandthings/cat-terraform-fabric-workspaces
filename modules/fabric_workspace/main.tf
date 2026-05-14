@@ -16,6 +16,7 @@ resource "fabric_workspace" "workspace" {
 }
 
 resource "fabric_domain_workspace_assignments" "domain_assignment" {
+  count     = var.fabric_domain_id != "" ? 1 : 0
   domain_id = var.fabric_domain_id
   workspace_ids = [
     fabric_workspace.workspace.id

@@ -29,6 +29,12 @@ jobs:
             terraform -chdir="$dir" init -backend=false
           done
 
+      - name: terraform test
+        run: |
+          for dir in modules/*/; do
+            terraform -chdir="$dir" test
+          done
+
       - name: install checkov
         run: pip install checkov
 
