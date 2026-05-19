@@ -17,6 +17,10 @@
         "resume_time": "07:00",
         "pause_days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
         "resume_days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+      },
+      "usage_autostop": {
+        "check_interval_hours": 1,
+        "idle_threshold_checks": 2
       }
     },
     {

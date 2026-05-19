@@ -49,7 +49,8 @@ pre-commit run --all-files
 │   │   ├── outputs.tf
 │   │   ├── provider.tf
 │   │   └── scripts/
-│   │       └── manage_capacity.ps1  # PowerShell runbook for pause/resume scheduling
+│   │       ├── capacity_scheduler.ps1  # Runbook: scheduled pause/resume
+│   │       └── capacity_autostop.ps1   # Runbook: usage-based auto-pause
 │   ├── fabric_domain/        # Microsoft Fabric domain module
 │   │   ├── main.tf
 │   │   ├── variables.tf
@@ -92,6 +93,10 @@ pre-commit run --all-files
            "resume_time": "07:00",
            "pause_days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
            "resume_days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+         },
+         "usage_autostop": {
+           "check_interval_hours": 1,
+           "idle_threshold_checks": 2
          }
        }
      ],
@@ -138,6 +143,9 @@ The project uses the following variables defined in [`variables.tf`](variables.t
     - `resume_time` (string): Time to resume the capacity in `HH:MM` UTC format
     - `pause_days` (list, optional): Days on which to pause (default: all days)
     - `resume_days` (list, optional): Days on which to resume (default: all days)
+  - `usage_autostop` (object, optional): Usage-based auto-pause configuration. Polls workspaces for active job instances and suspends the capacity when idle. Omit or set to `null` to disable. See [Usage-based Auto-pause](#usage-based-auto-pause-autostop) for detection caveats.
+    - `check_interval_hours` (number, optional): Poll frequency in hours, 1–24 (default: `1`)
+    - `idle_threshold_checks` (number, optional): Consecutive idle polls required before suspending (default: `2`)
 
 ### Domain Configuration
 - `domains` (list): List of Fabric domains to create
@@ -192,7 +200,8 @@ The [`fabric_capacity`](modules/fabric_capacity) module creates Azure Fabric cap
 - Deploys Microsoft Fabric capacity
 - Configurable SKU and location
 - Sets administration members from email addresses
-- Optional automated pause/resume scheduling via Azure Automation
+- Optional scheduled pause/resume via Azure Automation
+- Optional usage-based auto-pause based on Fabric job instance polling
 
 #### Module Inputs
 - `basename` (string): Base name for resources
@@ -204,21 +213,55 @@ The [`fabric_capacity`](modules/fabric_capacity) module creates Azure Fabric cap
   - `resume_time` (string): Time to resume the capacity in `HH:MM` UTC format
   - `pause_days` (list, optional): Days on which to run the pause schedule (default: all days)
   - `resume_days` (list, optional): Days on which to run the resume schedule (default: all days)
+- `usage_autostop` (object, optional): Usage-based auto-pause configuration. Set to `null` (default) to disable. See [Usage-based Auto-pause](#usage-based-auto-pause-autostop) for what is and isn't detected.
+  - `check_interval_hours` (number, optional): Poll frequency in hours, 1–24 (default: `1`)
+  - `idle_threshold_checks` (number, optional): Consecutive idle polls required before suspending (default: `2`)
 
 #### Module Outputs
 - `id` (string): The Azure resource ID of the Fabric capacity
-- `automation_account_id` (string): The Azure resource ID of the Automation Account. `null` when scheduling is disabled.
+- `automation_account_id` (string): The Azure resource ID of the Automation Account. `null` when both `scheduler` and `usage_autostop` are disabled.
+- `monitor_principal_id` (string): Principal ID of the Automation Account's managed identity. Used by the workspace module to grant Fabric workspace membership. `null` when `usage_autostop` is disabled.
 
-#### Capacity Scheduling
+#### Capacity Scheduler
 
 When `scheduler` is configured, the module provisions the following Azure resources to automate capacity cost management:
 
 - **Azure Automation Account** — with a System-Assigned Managed Identity
 - **Role Assignment** — grants the Managed Identity `Contributor` access on the Fabric Capacity
-- **PowerShell 7.2 Runbook** (`manage_capacity.ps1`) — authenticates via Managed Identity and calls the Azure Management API to suspend or resume the capacity
+- **PowerShell 7.2 Runbook** (`capacity_scheduler.ps1`) — authenticates via Managed Identity and calls the Azure Management API to suspend or resume the capacity
 - **Two weekly schedules** — one to pause and one to resume the capacity at the configured times and days
 
 The runbook is idempotent: it checks the current capacity state before acting and skips the API call if the capacity is already in the target state.
+
+#### Usage-based Auto-pause (autostop)
+
+When `usage_autostop` is configured, the module provisions an additional runbook (`capacity_autostop.ps1`) that polls all accessible Fabric workspaces for active job instances and suspends the capacity only after it has been consistently idle for a sustained period.
+
+The Fabric Jobs API only reports **scheduled or triggered job instances**. Interactive and continuous workloads are invisible to this API and will not prevent suspension.
+
+**Detected (will prevent suspension while running):**
+
+| Workload | Activity |
+|---|---|
+| Data Factory | Data pipeline runs, Dataflow Gen2 refreshes, Copy Job runs |
+| Data Engineering | Notebook runs (scheduled / triggered), Spark Job Definition runs, Lakehouse table maintenance (OPTIMIZE / VACUUM) |
+| Data Science | ML Experiment / ML Model training jobs (when triggered as jobs) |
+| Data Warehouse | Semantic model (dataset) refreshes |
+| Real-Time Intelligence | KQL Database commands triggered as job instances, Mirrored Database initial snapshots (where exposed as jobs) |
+
+**NOT detected (capacity may be suspended while these are in active use):**
+
+| Workload | Activity |
+|---|---|
+| Data Warehouse / SQL | Interactive SQL queries against Fabric Warehouses; queries against the Lakehouse SQL analytics endpoint |
+| Real-Time Intelligence | Interactive KQL queries against Eventhouses, KQL Databases, KQL Querysets; Eventstream continuous ingestion; Activator (Reflex) rule evaluation; Real-Time Dashboards |
+| Data Engineering | Interactive notebook sessions; Spark interactive sessions / Livy endpoint usage |
+| Power BI / Data Science | Power BI report rendering, DirectQuery / Direct Lake reads, paginated reports; interactive ML Experiment exploration |
+| Mirrored Database | Continuous change-data replication |
+
+> For workloads dominated by interactive SQL, KQL, Power BI, or streaming usage, the `scheduler` option is safer as it pauses at predictable off-hours rather than relying on incomplete activity detection.
+
+The managed identity must be added as a **Member** of each Fabric workspace to monitor. Workspaces managed by this Terraform project are assigned automatically; any others must be added manually via the Fabric Admin Portal.
 
 ### fabric_domain
 
@@ -246,12 +289,15 @@ The [`fabric_workspace`](modules/fabric_workspace) module creates Microsoft Fabr
 - Links to existing Fabric capacity
 - Automatic domain assignment
 - Capacity state validation
+- Automatic addition of the capacity autostop managed identity as a workspace `Member`
 
 #### Module Inputs
 - `display_name` (string): The name of the Fabric workspace
 - `description` (string): Description of the workspace (optional)
 - `capacity_id` (string): The Azure resource ID of the Fabric capacity
-- `fabric_domain_id` (string): The ID of the Fabric domain (optional)
+- `fabric_domain_id` (string, optional): The ID of the Fabric domain
+- `assign_to_domain` (bool, optional): Whether to assign the workspace to a Fabric domain (default: `false`)
+- `monitor_principal_id` (string, optional): Principal ID of the capacity autostop managed identity to add as a workspace `Member`. Pass through from `module.fabric_capacity.monitor_principal_id`. Set to `null` to skip.
 
 ## Provider Configuration
 

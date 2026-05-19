@@ -1,9 +1,10 @@
 <#
 .SYNOPSIS
-    Pauses or resumes an Azure Fabric Capacity.
+    Pauses or resumes an Azure Fabric Capacity on a schedule.
 
 .DESCRIPTION
-    Runs inside an Azure Automation Account using a System-Assigned Managed Identity.
+    Runs inside an Azure Automation Account (runbook: fabric-capacity-scheduler) using
+    a System-Assigned Managed Identity.
     The identity requires Contributor on the Fabric Capacity resource.
 
 .PARAMETER SubscriptionId
@@ -33,7 +34,7 @@ $ErrorActionPreference = "Stop"
 Write-Output "Authenticating with Managed Identity..."
 Connect-AzAccount -Identity | Out-Null
 
-$token   = (Get-AzAccessToken -ResourceUrl "https://management.azure.com/").Token
+$token   = (Get-AzAccessToken -ResourceUrl "https://management.azure.com/" -AsSecureString:$false).Token
 $headers = @{ Authorization = "Bearer $token"; "Content-Type" = "application/json" }
 
 $baseUrl    = "https://management.azure.com"

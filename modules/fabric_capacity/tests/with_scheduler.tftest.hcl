@@ -44,6 +44,11 @@ run "with_scheduler_creates_all_resources" {
   }
 
   assert {
+    condition     = azurerm_automation_runbook.manage_capacity[0].name == "fabric-capacity-scheduler"
+    error_message = "Scheduler runbook name should be fabric-capacity-scheduler"
+  }
+
+  assert {
     condition     = azurerm_automation_runbook.manage_capacity[0].runbook_type == "PowerShell72"
     error_message = "Runbook type should be PowerShell72"
   }
@@ -71,5 +76,21 @@ run "with_scheduler_creates_all_resources" {
   assert {
     condition     = length(azurerm_role_assignment.automation_contributor) == 1
     error_message = "Role assignment should be created when scheduler is set"
+  }
+
+  # Usage-based autostop resources must be absent when usage_autostop is null.
+  assert {
+    condition     = length(azurerm_automation_runbook.monitor_capacity) == 0
+    error_message = "Monitor runbook should not be created when usage_autostop is null"
+  }
+
+  assert {
+    condition     = length(azurerm_automation_variable_int.idle_check_counter) == 0
+    error_message = "Idle counter variable should not be created when usage_autostop is null"
+  }
+
+  assert {
+    condition     = length(azurerm_automation_schedule.monitor_schedule) == 0
+    error_message = "Monitor schedule should not be created when usage_autostop is null"
   }
 }

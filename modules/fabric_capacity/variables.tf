@@ -72,3 +72,29 @@ variable "scheduler" {
     error_message = "scheduler.resume_days must be a non-empty list of valid weekday names: Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday."
   }
 }
+
+variable "usage_autostop" {
+  description = "Optional usage-based auto-pause configuration. Polls accessible Fabric workspaces for active job instances on a recurring schedule and suspends the capacity when it has been idle for a sustained period. Set to null to disable. NOTE: only scheduled/triggered Fabric job instances are detected (pipeline runs, dataflow Gen2 refreshes, copy jobs, notebook runs, Spark Job Definition runs, lakehouse table maintenance, semantic model refreshes). The following activity is NOT detected and will not prevent suspension: interactive SQL queries against Warehouses or Lakehouse SQL endpoints; interactive KQL queries against Eventhouses, KQL Databases, or KQL Querysets; Eventstream continuous ingestion; Activator (Reflex) rule evaluation; Real-Time Dashboards; interactive notebook sessions or Spark Livy sessions; Power BI report rendering / DirectQuery / Direct Lake reads; paginated reports; Mirrored Database continuous replication."
+  default     = null
+  type = object({
+    check_interval_hours  = optional(number, 1) # How often to poll: 1–24 hours
+    idle_threshold_checks = optional(number, 2) # Consecutive idle polls before suspending
+  })
+
+  validation {
+    condition = var.usage_autostop == null || (
+      var.usage_autostop.check_interval_hours >= 1 &&
+      var.usage_autostop.check_interval_hours <= 24 &&
+      floor(var.usage_autostop.check_interval_hours) == var.usage_autostop.check_interval_hours
+    )
+    error_message = "usage_autostop.check_interval_hours must be a whole number between 1 and 24."
+  }
+
+  validation {
+    condition = var.usage_autostop == null || (
+      var.usage_autostop.idle_threshold_checks >= 1 &&
+      floor(var.usage_autostop.idle_threshold_checks) == var.usage_autostop.idle_threshold_checks
+    )
+    error_message = "usage_autostop.idle_threshold_checks must be a whole number of 1 or more."
+  }
+}
