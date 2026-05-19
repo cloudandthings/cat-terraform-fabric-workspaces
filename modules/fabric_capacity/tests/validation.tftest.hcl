@@ -82,3 +82,61 @@ run "invalid_resume_day" {
 
   expect_failures = [var.scheduler]
 }
+
+# ---------------------------------------------------------------------------
+# var.usage_autostop validation tests
+# ---------------------------------------------------------------------------
+
+# check_interval_hours = 0 is below the minimum of 1.
+run "invalid_check_interval_hours_zero" {
+  command = plan
+
+  variables {
+    basename     = "testcapacity"
+    location     = "North Europe"
+    sku          = "F2"
+    admin_emails = []
+    usage_autostop = {
+      check_interval_hours  = 0
+      idle_threshold_checks = 1
+    }
+  }
+
+  expect_failures = [var.usage_autostop]
+}
+
+# check_interval_hours = 1.5 is not a whole number.
+run "invalid_check_interval_hours_fractional" {
+  command = plan
+
+  variables {
+    basename     = "testcapacity"
+    location     = "North Europe"
+    sku          = "F2"
+    admin_emails = []
+    usage_autostop = {
+      check_interval_hours  = 1.5
+      idle_threshold_checks = 1
+    }
+  }
+
+  expect_failures = [var.usage_autostop]
+}
+
+# idle_threshold_checks = 0 is below the minimum of 1.
+run "invalid_idle_threshold_checks_zero" {
+  command = plan
+
+  variables {
+    basename     = "testcapacity"
+    location     = "North Europe"
+    sku          = "F2"
+    admin_emails = []
+    usage_autostop = {
+      check_interval_hours  = 1
+      idle_threshold_checks = 0
+    }
+  }
+
+  expect_failures = [var.usage_autostop]
+}

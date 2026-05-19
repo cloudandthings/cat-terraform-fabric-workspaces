@@ -52,4 +52,35 @@ run "no_scheduler_creates_only_core_resources" {
     condition     = length(azurerm_automation_schedule.resume_schedule) == 0
     error_message = "No resume schedule should be created when scheduler is null"
   }
+
+  # Usage-based autostop resources must also be absent when both inputs are null.
+  assert {
+    condition     = length(azurerm_automation_runbook.monitor_capacity) == 0
+    error_message = "No monitor runbook should be created when both scheduler and usage_autostop are null"
+  }
+
+  assert {
+    condition     = length(azurerm_automation_variable_int.idle_check_counter) == 0
+    error_message = "No idle counter variable should be created when both scheduler and usage_autostop are null"
+  }
+
+  assert {
+    condition     = length(azurerm_automation_schedule.monitor_schedule) == 0
+    error_message = "No monitor schedule should be created when both scheduler and usage_autostop are null"
+  }
+
+  assert {
+    condition     = length(azurerm_role_assignment.automation_contributor) == 0
+    error_message = "No capacity-scope role assignment should be created when both inputs are null"
+  }
+
+  assert {
+    condition     = output.monitor_principal_id == null
+    error_message = "monitor_principal_id output should be null when usage_autostop is disabled"
+  }
+
+  assert {
+    condition     = output.automation_account_id == null
+    error_message = "automation_account_id output should be null when both inputs are null"
+  }
 }

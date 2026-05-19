@@ -16,9 +16,19 @@ resource "fabric_workspace" "workspace" {
 }
 
 resource "fabric_domain_workspace_assignments" "domain_assignment" {
-  count     = var.fabric_domain_id != "" ? 1 : 0
+  count     = var.assign_to_domain ? 1 : 0
   domain_id = var.fabric_domain_id
   workspace_ids = [
     fabric_workspace.workspace.id
   ]
+}
+
+resource "fabric_workspace_role_assignment" "monitor" {
+  count        = var.enable_monitor_role_assignment ? 1 : 0
+  workspace_id = fabric_workspace.workspace.id
+  role         = "Member"
+  principal = {
+    id   = var.monitor_principal_id
+    type = "ServicePrincipal"
+  }
 }
